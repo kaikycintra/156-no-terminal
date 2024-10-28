@@ -18,7 +18,9 @@ The pre-commit file should contain:
 #!/bin/bash
 
 # Run test script
-./../../testing/tests.sh
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "${PROJECT_ROOT}/testing"
+./tests.sh
 
 if [ $? -ne 0 ]; then
     echo "Tests failed. Commit aborted."
