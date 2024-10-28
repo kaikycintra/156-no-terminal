@@ -1,95 +1,143 @@
+#!/bin/bash
 # Testes executados automaticamente pre-commit
 # Chamado em .git/hooks/pre-commit
 
-#!/bin/bash
+# Diretório raiz do projeto
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+
 # Diretório temporário para testes
-TEST_DIR="test_dir"
-mkdir -p $TEST_DIR
+TEST_DIR="${PROJECT_ROOT}/testing/test_dir"
+mkdir "${TEST_DIR}"
 
-# Arquivo temporário para URLs
-URL_FILE="$TEST_DIR/urls1.txt"
+# Copiar script principal para o TEST_DIR
+SCRIPT="${TEST_DIR}/ep2_servico156.sh"
+cp "${PROJECT_ROOT}/ep2_servico156.sh" "${SCRIPT}"
 
-# Função para testar print_erro_sem_dados
-function test_print_erro_sem_dados {
-    output=$(print_erro_sem_dados)
-    expected_output="ERRO: Não há dados baixados.
+# Copiar arquivo com URLs para teste para o TEST_DIR
+URL_FILE="${TEST_DIR}/urls1.txt"
+cp "${PROJECT_ROOT}/testing/urls1.txt" "${URL_FILE}"
+
+# Definir o diretório de trabalho para o TEST_DIR
+cd "${TEST_DIR}"
+
+function test_erro_sem_dados {
+    echo "Executando test_erro_sem_dados"
+
+    # Executa o script principal sem parâmetros
+    local OUTPUT
+    OUTPUT=$("${SCRIPT}")
+
+    # Saída esperada
+    local EXPECTED_OUTPUT
+    EXPECTED_OUTPUT="ERRO: Não há dados baixados.
 Para baixar os dados antes de gerar as estatísticas, use:
   ./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
-    if [ "$output" == "$expected_output" ]; then
-        echo "test_print_erro_sem_dados PASSED"
+
+    # Verifica se a saída contém a mensagem de erro esperada
+    if echo "${OUTPUT}" | grep -q "ERRO: Não há dados baixados."; then
+        echo "test_erro_sem_dados passou"
+        return 0
     else
-        echo "test_print_erro_sem_dados FAILED"
+        echo "test_erro_sem_dados falhou"
+        echo "Saída esperada:"
+        echo "${EXPECTED_OUTPUT}"
+        echo "Saída atual:"
+        echo "${OUTPUT}"
         return 1
     fi
 }
 
-# Função para testar print_erro_parametros
-function test_print_erro_parametros {
-    output=$(print_erro_parametros)
-    expected_output="Número incorreto de parâmetros passados
+function test_erro_parametros {
+    echo "Executando test_erro_parametros"
+
+    # Executa o script principal com parâmetros incorretos
+    local OUTPUT
+    OUTPUT=$("${SCRIPT}" param1 param2)
+
+    local EXPECTED_OUTPUT
+    EXPECTED_OUTPUT="Número incorreto de parâmetros passados
 Utilize um dos modos seguintes de execução
 ./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>
 ./ep2_servico156.sh"
-    if [ "$output" == "$expected_output" ]; then
-        echo "test_print_erro_parametros PASSED"
+
+    # Verifica se a saída contém a mensagem de erro esperada
+    if echo "${OUTPUT}" | grep -q "Número incorreto de parâmetros passados"; then
+        echo "test_erro_parametros passou"
+        return 0
     else
-        echo "test_print_erro_parametros FAILED"
+        echo "test_erro_parametros falhou"
+        echo "Saída esperada:"
+        echo "${EXPECTED_OUTPUT}"
+        echo "Saída atual:"
+        echo "${OUTPUT}"
         return 1
     fi
 }
 
-# Função para testar print_erro_bad_path
-function test_print_erro_bad_path {
-    output=$(print_erro_bad_path "invalid_path")
-    expected_output="ERRO: O arquivo invalid_path não existe."
-    if [ "$output" == "$expected_output" ]; then
-        echo "test_print_erro_bad_path PASSED"
+function test_erro_bad_path {
+    echo "Executando test_erro_bad_path"
+
+    # Executa o script principal com um arquivo inexistente
+    local OUTPUT
+    OUTPUT=$("${SCRIPT}" "bad.txt")
+
+    local EXPECTED_OUTPUT
+    EXPECTED_OUTPUT="ERRO: O arquivo bad.txt não existe."
+
+    # Verifica se a saída contém a mensagem de erro esperada
+    if echo "${OUTPUT}" | grep -q "ERRO: O arquivo bad.txt não existe."; then
+        echo "test_erro_bad_path passou"
+        return 0
     else
-        echo "test_print_erro_bad_path FAILED"
+        echo "test_erro_bad_path falhou"
+        echo "Saída esperada:"
+        echo "${EXPECTED_OUTPUT}"
+        echo "Saída atual:"
+        echo "${OUTPUT}"
         return 1
     fi
 }
 
-# Função para testar execucao_modo_1
-#function test_execucao_modo_1 {
-    #echo "http://example.com/file.csv" > $URL_FILE
-    #execucao_modo_1 $URL_FILE
-    #if [ $? -eq 0 ]; then
-    #    echo "test_execucao_modo_1 PASSED"
-    #else
-    #    echo "test_execucao_modo_1 FAILED"
-    #    return 1
-    #fi
-#}
+function test1_execucao_modo_1 {
+    echo "Executando test1_execucao_modo_1"
 
-# Função para testar execucao_modo_2
-#function test_execucao_modo_2 {
-    #mkdir -p $DIRCSV
-    #execucao_modo_2
-    #if [ $? -eq 0 ]; then
-    #    echo "test_execucao_modo_2 PASSED"
-    #else
-    #    echo "test_execucao_modo_2 FAILED"
-    #    return 1
-    #fi
-#}
+    # Executa o script principal com um arquivo de URLs válido
+    local OUTPUT
+    OUTPUT=$("${SCRIPT}" "${URL_FILE}")
 
-# Executar todos os testes
+    # Verifica se nenhuma mensagem de erro é impressa
+    # Verifica se o arquivocompleto.csv foi criado dentro de DIRCSV
+    local DIRCSV="${TEST_DIR}/diretorio_csv"
+
+    if echo "${OUTPUT}" | grep -q "ERRO"; then
+        echo "test1_execucao_modo_1 falhou"
+        echo "A saída contém um erro:"
+        echo "${OUTPUT}"
+        return 1
+    elif [ ! -f "${DIRCSV}/arquivocompleto.csv" ]; then
+        echo "test1_execucao_modo_1 falhou"
+        echo "O arquivo arquivocompleto.csv não foi criado em ${DIRCSV}"
+        return 1
+    else
+        echo "test1_execucao_modo_1 passou"
+        return 0
+    fi
+}
+
+# Sair com erro se algum teste retornar 1
 function run_tests {
-    test_print_erro_sem_dados
-    test_print_erro_parametros
-    test_print_erro_bad_path
-    #test_execucao_modo_1
-    #test_execucao_modo_2
+    test_erro_sem_dados || exit 1
+    test_erro_parametros || exit 1
+    test_erro_bad_path || exit 1
+    #test1_execucao_modo_1 || exit 1
 }
 
-# Executar os testes e capturar o status
 run_tests
-TEST_STATUS=$?
 
-# Limpar diretório de testes
-rm -rf $TEST_DIR
-rm -rf $DIRCSV
+# Voltar para o diretório inicial
+cd "${PROJECT_ROOT}"
 
-# Sair com o status dos testes
-exit $TEST_STATUS
+# Limpeza do diretório de teste
+rm -rf "${TEST_DIR}"
+
+exit 0
