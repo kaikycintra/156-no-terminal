@@ -1,21 +1,19 @@
 #!/bin/bash
 # Testes executados automaticamente pre-commit
-# Chamado em .git/hooks/pre-commit
-
-# Diretório raiz do projeto
-PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+# Chamado por .git/hooks/pre-commit com cd para PROJECT_ROOT/testing
+# Para testes sem commit, DEVE ser chamado em PROJECT_ROOT/testing
 
 # Diretório temporário para testes
-TEST_DIR="${PROJECT_ROOT}/testing/test_dir"
+TEST_DIR="test_dir"
 mkdir "${TEST_DIR}"
 
 # Copiar script principal para o TEST_DIR
-SCRIPT="${TEST_DIR}/ep2_servico156.sh"
-cp "${PROJECT_ROOT}/ep2_servico156.sh" "${SCRIPT}"
+SCRIPT="ep2_servico156.sh"
+cp "../ep2_servico156.sh" "${TEST_DIR}/${SCRIPT}"
 
 # Copiar arquivo com URLs para teste para o TEST_DIR
-URL_FILE="${TEST_DIR}/urls1.txt"
-cp "${PROJECT_ROOT}/testing/urls1.txt" "${URL_FILE}"
+URL_FILE="urls1.txt"
+cp "urls1.txt" "${TEST_DIR}/${URL_FILE}"
 
 # Definir o diretório de trabalho para o TEST_DIR
 cd "${TEST_DIR}"
@@ -25,7 +23,7 @@ function test_erro_sem_dados {
 
     # Executa o script principal sem parâmetros
     local OUTPUT
-    OUTPUT=$("${SCRIPT}")
+    OUTPUT=$(./${SCRIPT})
 
     # Saída esperada
     local EXPECTED_OUTPUT
@@ -52,7 +50,7 @@ function test_erro_parametros {
 
     # Executa o script principal com parâmetros incorretos
     local OUTPUT
-    OUTPUT=$("${SCRIPT}" param1 param2)
+    OUTPUT=$(./${SCRIPT} param1 param2)
 
     local EXPECTED_OUTPUT
     EXPECTED_OUTPUT="Número incorreto de parâmetros passados
@@ -79,7 +77,7 @@ function test_erro_bad_path {
 
     # Executa o script principal com um arquivo inexistente
     local OUTPUT
-    OUTPUT=$("${SCRIPT}" "bad.txt")
+    OUTPUT=$(./${SCRIPT} bad.txt)
 
     local EXPECTED_OUTPUT
     EXPECTED_OUTPUT="ERRO: O arquivo bad.txt não existe."
@@ -103,7 +101,7 @@ function test1_execucao_modo_1 {
 
     # Executa o script principal com um arquivo de URLs válido
     local OUTPUT
-    OUTPUT=$("${SCRIPT}" "${URL_FILE}")
+    OUTPUT=$(./${SCRIPT} ${URL_FILE})
 
     # Verifica se nenhuma mensagem de erro é impressa
     # Verifica se o arquivocompleto.csv foi criado dentro de DIRCSV
@@ -134,8 +132,8 @@ function run_tests {
 
 run_tests
 
-# Voltar para o diretório inicial
-cd "${PROJECT_ROOT}"
+# Voltar para o diretório testing
+cd ..
 
 # Limpeza do diretório de teste
 rm -rf "${TEST_DIR}"
