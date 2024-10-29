@@ -48,8 +48,8 @@ function execucao_modo_1 {
         return 1
     fi
 
-    # Cria diretório especial para guardar CSVs baixados
-    mkdir ${DIRCSV}
+    # Cria diretório especial para guardar CSVs baixados, -p pula se já existe, evitando erro
+    mkdir -p ${DIRCSV}
 
     # Permite leitura do arquivo, baixa os CSVs indicados nele e os converte para UTF-8
     chmod +r ${CAMINHO}
@@ -75,6 +75,34 @@ function execucao_modo_1 {
     done
 }
 
+# $1 = Caminho do arquivo
+# Retorna o número de reclamações
+function num_reclamacoes {
+    local NUM_REC=$( wc -l ${1} | cut -d " " -f1)   # Obtém o número de linhas do arquivo
+    let NUM_REC=NUM_REC-1
+    echo ${NUM_REC}
+}
+
+# Modifica o valor da variável ARQSEL criada no modo de execução 2
+function selecionar_arquivo {
+    echo -e "\nEscolha uma opção de arquivo: "
+    select arquivo in $( ls ${DIRCSV} ); do
+        if [ -n ${arquivo} ]; then
+            ARQSEL=${DIRCSV}/${arquivo}
+
+            local NOME_ARQSEL=$(echo ${ARQSEL} | sed 's#.*/##')  # Extrai o nome do caminho do arquivo
+            echo "+++ Arquivo atual: ${NOME_ARQSEL}"
+
+            local NUM_REC=$( num_reclamacoes ${ARQSEL} )
+            echo "+++ Número de reclamações: ${NUM_REC}"
+            echo "+++++++++++++++++++++++++++++++++++++++"
+            break
+        else
+            echo "Opção inválida. Tente novamente."
+        fi
+    done
+}
+
 # Manipula os dados presentes no DIRCSV
 function execucao_modo_2 {
     # Verificar presença dos arquivos CSV
@@ -83,13 +111,58 @@ function execucao_modo_2 {
         return 1
     fi
 
-    # Opções de manipulação dos arquivos:
-    # 1 selecionar_arquivo
-    # 2 adicionar_filtro_coluna
-    # 3 limpar_filtros_colunas
-    # 4 mostrar_duracao_media_reclamacao
-    # 5 mostrar_ranking_reclamacoes
-    # 6 mostrar_reclamacoes
+    # Arquivo padrão selecionado deve ser arquivocompleto.csv
+    # É modificada pela função selecionar_arquivo
+    ARQSEL="${DIRCSV}/arquivocompleto.csv"
+
+    # Loop para mostrar o menu com o header
+    while true; do
+        # Header
+       echo -e "\nEscolha uma opção de operação: "
+
+        local OPCOES="selecionar_arquivo adicionar_filtro_coluna limpar_filtros_colunas mostrar_duracao_media_reclamacao mostrar_ranking_reclamacoes mostrar_reclamacoes sair"
+        select opt in ${OPCOES}; do
+            case $opt in
+                "selecionar_arquivo")
+                    selecionar_arquivo
+                    break
+                    ;;
+                "adicionar_filtro_coluna")
+                    echo "Opção adicionar_filtro_coluna selecionada"
+                    # Adicione a lógica para adicionar_filtro_coluna aqui
+                    break
+                    ;;
+                "limpar_filtros_colunas")
+                    echo "Opção limpar_filtros_colunas selecionada"
+                    # Adicione a lógica para limpar_filtros_colunas aqui
+                    break
+                    ;;
+                "mostrar_duracao_media_reclamacao")
+                    echo "Opção mostrar_duracao_media_reclamacao selecionada"
+                    # Adicione a lógica para mostrar_duracao_media_reclamacao aqui
+                    break
+                    ;;
+                "mostrar_ranking_reclamacoes")
+                    echo "Opção mostrar_ranking_reclamacoes selecionada"
+                    # Adicione a lógica para mostrar_ranking_reclamacoes aqui
+                    break
+                    ;;
+                "mostrar_reclamacoes")
+                    echo "Opção mostrar_reclamacoes selecionada"
+                    # Adicione a lógica para mostrar_reclamacoes aqui
+                    break
+                    ;;
+                "sair")
+                    echo "Saindo..."
+                    return 0
+                    ;;
+                *) 
+                    echo "Opção inválida ${REPLY}"
+                    break
+                    ;;
+            esac
+        done
+    done
 }
 
 ##################################################################
