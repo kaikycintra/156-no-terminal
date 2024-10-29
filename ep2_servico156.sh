@@ -41,17 +41,38 @@ function print_erro_bad_path {
 function execucao_modo_1 {
     local CAMINHO=$1
 
+    # Recebe um caminho para txt, baixa CSVs linkados por ele, muda sua codificação e os junta
     # Verifica se o arquivo com URLs de fato se encontra no caminho dado
     if [ ! -f "${CAMINHO}" ]; then
         print_erro_bad_path ${CAMINHO}
         return 1
     fi
 
-    # Recebe um caminho para txt, baixa CSVs linkados por ele, muda sua codificação e os junta
-    # Baixar os CSVs e gravar em um diretório especial para armazenar os dados
-    # Converter codificação de ISO-8859-1 para UTF-8
+    # Cria diretório especial para guardar CSVs baixados
+    mkdir ${DIRCSV}
+
+    # Permite leitura do arquivo, baixa os CSVs indicados nele e os converte para UTF-8
+    chmod +r ${CAMINHO}
+    for i in $( cat ${CAMINHO} ); do
+        local NOME_ARQ=$(echo ${i} | sed 's#.*/##')
+        
+        # Verifica se já não está baixado
+        if ! $( ls ${DIRCSV} | grep -q "${NOME_ARQ}" ); then
+            wget -nv ${i} -P ${DIRCSV}
+            iconv -f ISO-8859-1 -t UTF8 "${DIRCSV}/${NOME_ARQ}" -o "${DIRCSV}/UTF${NOME_ARQ}"
+            mv "${DIRCSV}/UTF${NOME_ARQ}" "${DIRCSV}/${NOME_ARQ}" 
+        fi
+    done
+
     # Criar CSV com todas as linhas dos outros CSVs baixados 'arquivocompleto.csv'
-    # Se o arquivocompleto.csv já existir, substituí-lo
+    local OUTPUT_FILE="${DIRCSV}/arquivocompleto.csv"
+    > "${OUTPUT_FILE}"  # Limpa o arquivo se já existir
+
+    for csv_file in $( ls ${DIRCSV} | grep ".*\.csv" ); do
+        if [ "${DIRCSV}/${csv_file}" != "${OUTPUT_FILE}" ]; then
+            tail -n +2 "${DIRCSV}/${csv_file}" >> "${OUTPUT_FILE}"
+        fi
+    done
 }
 
 # Manipula os dados presentes no DIRCSV
