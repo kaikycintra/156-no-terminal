@@ -4,6 +4,15 @@ Created by Kaiky Henrique Ribeiro Cintra
 
 ---
 
+##
+Este programa implementa uma ferramenta de terminal que mostra estatísticas do serviço 156 da Prefeitura de São Paulo.
+
+Ele oferece maneiras de manipular os dados para facilitar sua análise.
+
+As instruções de uso estão contidas no script bash, basta rodá-lo.
+
+---
+
 ## Automating tests:
 
 To set up the pre-commit hook, run the following commands:
