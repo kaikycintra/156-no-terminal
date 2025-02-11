@@ -4,7 +4,8 @@ Created by Kaiky Henrique Ribeiro Cintra
 
 ---
 
-##
+## Apresentação:
+
 Este programa implementa uma ferramenta de terminal que mostra estatísticas do serviço 156 da Prefeitura de São Paulo.
 
 Ele oferece maneiras de manipular os dados para facilitar sua análise.
